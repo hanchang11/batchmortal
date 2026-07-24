@@ -1,0 +1,23 @@
+{
+  "mode": "mj",
+  "mj": {
+    "nickname": "",
+    "limit": 30,
+    "modes": "12"
+  },
+  "model_tag": "4.1b",
+  "review_language": "zh-CN",
+  "review_ui": "killerducky",
+  "analyze_bad_move_rate": true,
+  "headless": true,
+  "dry_run": false,
+  "save_screenshot": false,
+  "save_local_paipu": false,
+  "output": "xlsx",
+  "retry": 3,
+  "proxy": null,
+  "prewarm_standby": false,
+  "unsafe_parallel_review": false,
+  "plot": "none",
+  "plot_limit": null
+}

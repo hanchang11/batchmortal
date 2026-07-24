@@ -1,11 +1,19 @@
 import re
 import os
+import sys
 import urllib.request
 import json
 import zipfile
 import shutil
 import platform
 import subprocess
+
+# Ensure UTF-8 output on Windows
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
 
 def get_chrome_version():
     """自动检测 Chrome 的主版本号及完整版本号"""
@@ -81,32 +89,32 @@ def install_uc_driver():
     try:
         import seleniumbase
     except ImportError:
-        print("❌ 错误：此环境尚未安装 seleniumbase。请先执行 pip install seleniumbase")
+        print("[ERROR] seleniumbase not installed. Run: pip install seleniumbase")
         return
 
     major, full = get_chrome_version()
     if not major:
-        print("❌ 错误：无法在系统中检测到 Google Chrome，请确认是否已安装。")
+        print("[ERROR] Google Chrome not detected in this system.")
         return
         
-    print(f"✅ 检测到本地 Chrome: 完整版本 {full} (主版本 {major})")
+    print(f"[OK] Detected Chrome: {full} (major {major})")
     
     download_url = get_npm_mirror_download_url(major, full)
     if not download_url:
-        print(f"❌ 错误：未能在镜像站找到 Chrome {major} 对应的驱动程序。")
+        print(f"[ERROR] No driver found for Chrome {major} on the mirror.")
         return
     
-    print(f"🔗 驱动下载链接: {download_url}")
+print(f"[LINK] Driver URL: {download_url}")
     
     zip_path = "chromedriver_temp.zip"
     try:
-        print("⬇️ 正在下载驱动，请稍候...")
+        print("[DOWNLOAD] Downloading driver, please wait...")
         req = urllib.request.Request(download_url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=60) as response, open(zip_path, 'wb') as out_file:
             shutil.copyfileobj(response, out_file)
-        print("✅ 下载完成。")
+        print("[OK] Download complete.")
     except Exception as e:
-        print(f"❌ 下载失败: {e}")
+        print(f"[ERROR] Download failed: {e}")
         return
 
     # 获取当前 Python 环境中 seleniumbase 的 driver 存放目录
@@ -116,7 +124,7 @@ def install_uc_driver():
     uc_driver_path = os.path.join(sb_drivers_dir, 'uc_driver.exe')
 
     try:
-        print("📦 正在解压并配置...")
+        print("[EXTRACT] Extracting and configuring...")
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             exe_name = None
             # 在压缩包中寻找 chromedriver.exe (应对不同版本的目录嵌套)
@@ -126,18 +134,18 @@ def install_uc_driver():
                     break
             
             if not exe_name:
-                print("❌ 错误：未在压缩包中找到 chromedriver.exe")
+                print("[ERROR] chromedriver.exe not found in archive.")
                 return
             
             # 直接提取内容并写入到期望的 uc_driver.exe 文件位置
             with zip_ref.open(exe_name) as source, open(uc_driver_path, "wb") as target:
                 shutil.copyfileobj(source, target)
                 
-        print(f"🎉 成功！uc_driver.exe 已自动安装至:")
-        print(f"   -> {uc_driver_path}")
-        print("现在程序可以正常运行了。")
+        print(f"[OK] uc_driver.exe installed to:")
+        print(f"     -> {uc_driver_path}")
+        print("Ready to run.")
     except Exception as e:
-        print(f"❌ 解压或配置失败: {e}")
+        print(f"[ERROR] Extraction/configuration failed: {e}")
     finally:
         # 清理临时下载的压缩包
         if os.path.exists(zip_path):

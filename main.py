@@ -1,10 +1,16 @@
 import argparse
+import io
 import logging
 import os
 import sys
 import time
 import urllib.request
 from datetime import datetime, timezone
+
+# Fix encoding for Windows GBK consoles
+if sys.platform == "win32":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 from batchmortal.api import build_paipu_urls, get_player_records, search_player, get_player_nickname_by_id
 from batchmortal.browser import (
@@ -274,11 +280,12 @@ def build_output_path(nickname: str, output_format: str, source: str = "majsoul"
         c if c.isalnum() or c in ("_", "-", "\u4e00", "\u9fa5") else "_"
         for c in nickname
     )
-    results_root = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "results",
-        source,
-    )
+    # 打包后使用 exe 所在目录，开发时使用当前工作目录
+    if getattr(sys, "frozen", False):
+        base_dir = os.path.dirname(sys.executable)
+    else:
+        base_dir = os.getcwd()
+    results_root = os.path.join(base_dir, "results", source)
     output_root = os.path.join(results_root, safe_nick)
     out_path = os.path.join(output_root, f"results.{output_format}")
     return output_root, out_path
